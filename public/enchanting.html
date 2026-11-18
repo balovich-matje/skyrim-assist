@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enchanting · Skyrim Assist</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M12 3h8v2h-1v7l7 12a3 3 0 0 1-2.6 4.5H8.6A3 3 0 0 1 6 24l7-12V5h-1z' fill='%23c9a85c'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Cinzel:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-smoke" aria-hidden="true"></div>
+
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M12 3h8v2h-1v7l7 12a3 3 0 0 1-2.6 4.5H8.6A3 3 0 0 1 6 24l7-12V5h-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9.5 21h13l2 3.4a1 1 0 0 1-.9 1.6H8.4a1 1 0 0 1-.9-1.6z" fill="currentColor" opacity=".55"/></svg>
+      <div>
+        <h1>Skyrim Assist</h1>
+        <p class="tagline">Bind power to steel and silver</p>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Pages">
+      <a href="./">Alchemy</a>
+      <a href="skills.html">Skill Training</a>
+      <a href="enchanting.html" aria-current="page">Enchanting</a>
+    </nav>
+    <div class="summary"></div>
+  </header>
+
+  <main class="skills-page ench-page">
+    <!-- content toggles -->
+    <section class="content-bar" aria-label="Game content">
+      <span class="cb-label">My game has</span>
+      <label class="switch"><input type="checkbox" id="optDLC" /><span class="track"><span class="knob"></span></span><span class="sw-text">DLC <small>Dawnguard · Dragonborn · Hearthfire</small></span></label>
+      <label class="switch"><input type="checkbox" id="optCC" /><span class="track"><span class="knob"></span></span><span class="sw-text">Creation Club <small>Anniversary Edition</small></span></label>
+      <label class="switch"><input type="checkbox" id="optUSSEP" /><span class="track"><span class="knob"></span></span><span class="sw-text">Unofficial Patch <small>USSEP</small></span></label>
+    </section>
+
+    <div class="seg" role="tablist" aria-label="Enchanting tools">
+      <button role="tab" id="tab-checklist" aria-controls="panel-checklist" data-tab="checklist">Checklist <span class="seg-count" id="segCount"></span></button>
+      <button role="tab" id="tab-calc" aria-controls="panel-calc" data-tab="calc">Power calculator</button>
+      <button role="tab" id="tab-guide" aria-controls="panel-guide" data-tab="guide">Boost guide</button>
+      <span class="seg-ink" aria-hidden="true"></span>
+    </div>
+
+    <!-- ============ CHECKLIST ============ -->
+    <section class="tabpanel" id="panel-checklist" role="tabpanel" aria-labelledby="tab-checklist">
+      <div class="ench-grid">
+        <aside class="panel ench-side">
+          <div class="progress">
+            <svg viewBox="0 0 120 120" class="ring" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" class="ring-bg" />
+              <circle cx="60" cy="60" r="52" class="ring-fg" id="ringFg" />
+            </svg>
+            <div class="ring-text"><b id="ringNum">0</b><span id="ringOf">of 0 learned</span></div>
+          </div>
+          <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Upload enchantment list screenshots">
+            <input type="file" id="fileInput" accept="image/*" multiple hidden />
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4.5 4.5M12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="dz-title">Drop enchantment list screenshots</div>
+            <div class="dz-sub">At an arcane enchanter, open the enchantment list and scroll · paste with <kbd>⌘V</kbd></div>
+          </div>
+          <div id="uploads" class="uploads"></div>
+          <p class="hint">Click any enchantment to mark it learned or missing by hand.</p>
+          <button class="link-btn" id="resetChecklist">Reset checklist</button>
+        </aside>
+
+        <div class="ench-main">
+          <div class="toolbar">
+            <input class="search" id="clSearch" type="search" placeholder="Search enchantments…" aria-label="Search enchantments" />
+            <div class="chips" id="clStatus" role="group" aria-label="Status"></div>
+            <div class="chips" id="clType" role="group" aria-label="Item type"></div>
+          </div>
+          <div id="checklist"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CALCULATOR ============ -->
+    <section class="tabpanel" id="panel-calc" role="tabpanel" aria-labelledby="tab-calc" hidden>
+      <div class="ench-grid calc-grid">
+        <aside class="panel ench-side calc-form" id="calcForm">
+          <label class="field">
+            <span>Enchanting skill <b id="skillOut">100</b></span>
+            <input type="range" id="cSkill" min="15" max="100" step="1" />
+          </label>
+          <label class="field">
+            <span>Enchanter perk</span>
+            <select id="cRank">
+              <option value="0">None</option><option value="1">Rank 1 (+20%)</option><option value="2">Rank 2 (+40%)</option>
+              <option value="3">Rank 3 (+60%)</option><option value="4">Rank 4 (+80%)</option><option value="5">Rank 5 (+100%)</option>
+            </select>
+          </label>
+          <div class="field"><span>Specialist perks (+25%)</span>
+            <div class="toggles">
+              <label class="tog"><input type="checkbox" id="cInsightful" /><span>Insightful</span></label>
+              <label class="tog"><input type="checkbox" id="cCorpus" /><span>Corpus</span></label>
+              <label class="tog"><input type="checkbox" id="cFire" /><span>Fire</span></label>
+              <label class="tog"><input type="checkbox" id="cFrost" /><span>Frost</span></label>
+              <label class="tog"><input type="checkbox" id="cStorm" /><span>Storm</span></label>
+            </div>
+          </div>
+          <div class="field"><span>Destruction perks (weapon damage only)</span>
+            <div class="aug-grid">
+              <label>Augmented Flames <select id="cAugFire"><option value="0">–</option><option value="1">1/2</option><option value="2">2/2</option></select></label>
+              <label>Augmented Frost <select id="cAugFrost"><option value="0">–</option><option value="1">1/2</option><option value="2">2/2</option></select></label>
+              <label>Augmented Shock <select id="cAugShock"><option value="0">–</option><option value="1">1/2</option><option value="2">2/2</option></select></label>
+            </div>
+          </div>
+          <label class="field">
+            <span>Soul gem</span>
+            <select id="cSoul">
+              <option value="grand">Grand / Black (×1)</option><option value="greater">Greater (×⅔)</option><option value="common">Common (×⅓)</option>
+              <option value="lesser">Lesser (×⅙)</option><option value="petty">Petty (×1⁄12)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Fortify Enchanting potion %</span>
+            <input type="number" id="cPotion" min="0" max="1000" step="1" />
+          </label>
+          <details class="estimator" id="estimator">
+            <summary>Estimate my potion from Alchemy</summary>
+            <div class="est-body">
+              <label class="field"><span>Alchemy skill <b id="aSkillOut">100</b></span><input type="range" id="aSkill" min="15" max="100" /></label>
+              <label class="field"><span>Alchemist perk rank</span><select id="aRank"><option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
+              <label class="field"><span>Fortify Alchemy from gear %</span><input type="number" id="aGear" min="0" max="1000" /></label>
+              <div class="toggles">
+                <label class="tog"><input type="checkbox" id="aBenefactor" /><span>Benefactor</span></label>
+                <label class="tog" data-needs="dlc"><input type="checkbox" id="aShadows" /><span>Seeker of Shadows</span></label>
+                <label class="tog" data-needs="cc"><input type="checkbox" id="aCurios" /><span>Dreugh Wax / Stoneflower</span></label>
+              </div>
+              <div class="est-out"><span>Your potion: <b id="estOut">+0%</b></span><button class="btn small" id="useEst" type="button">Use it</button></div>
+            </div>
+          </details>
+          <div class="field" data-needs="dlc"><span>Dragonborn</span>
+            <div class="toggles">
+              <label class="tog"><input type="checkbox" id="cAhzidal" /><span>Ahzidal's Genius (+10 skill)</span></label>
+              <label class="tog"><input type="checkbox" id="cSeeker" /><span>Seeker of Sorcery (+10%)</span></label>
+            </div>
+          </div>
+          <label class="field" data-needs="cc">
+            <span>Haunting Gift stacks (+10 skill each)</span>
+            <input type="number" id="cHaunt" min="0" max="10" step="1" />
+          </label>
+        </aside>
+
+        <div class="ench-main">
+          <div class="mult-cards" id="multCards"></div>
+          <div class="toolbar">
+            <input class="search" id="cSearch" type="search" placeholder="Search enchantments…" aria-label="Search enchantments" />
+            <div class="chips" id="cType" role="group" aria-label="Item type"></div>
+            <label class="tog"><input type="checkbox" id="cOnlyLearned" /><span>Only learned</span></label>
+          </div>
+          <div class="calc-table" id="calcTable" role="table" aria-label="Enchantment strength"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ GUIDE ============ -->
+    <section class="tabpanel" id="panel-guide" role="tabpanel" aria-labelledby="tab-guide" hidden>
+      <div class="section-title"><h2>Where enchantment power comes from</h2><p>Every source multiplies with the others. Sources your game doesn't have are hidden.</p></div>
+      <ol class="guide" id="guide"></ol>
+    </section>
+
+    <p class="page-foot">Enchantment data and formulas from the <a href="https://en.uesp.net/wiki/Skyrim:Enchanting_Effects" target="_blank" rel="noopener">UESP wiki</a> (CC BY-SA 2.5).</p>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="data.js"></script>
+  <script src="alchemy.js"></script>
+  <script src="enchant-data.js"></script>
+  <script src="ocr.js"></script>
+  <script src="enchanting.js"></script>
+</body>
+</html>

@@ -12,6 +12,7 @@ macOS Vision helper in ./ocr, and persists app state to ./data/state.json.
 import argparse
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -78,21 +79,30 @@ class Handler(SimpleHTTPRequestHandler):
             raise ValueError("upload too large")
         return self.rfile.read(n) if n else b""
 
+    def _state_file(self):
+        """/api/state -> data/state.json (alchemy); /api/state/<page> -> data/<page>.json."""
+        if self.path == "/api/state":
+            return STATE_FILE
+        m = re.fullmatch(r"/api/state/([a-z0-9-]{1,40})", self.path)
+        return os.path.join(DATA_DIR, m.group(1) + ".json") if m else None
+
     # ---- routes ----
     def do_GET(self):
         if self.path == "/api/health":
             return self._json({"ok": True, "ocr": "vision" if self.server.ocr_ok else "none"})
-        if self.path == "/api/state":
+        path = self._state_file()
+        if path:
             with state_lock:
                 try:
-                    with open(STATE_FILE, encoding="utf-8") as f:
+                    with open(path, encoding="utf-8") as f:
                         return self._json(json.load(f))
                 except (OSError, ValueError):
                     return self._json({})
         return super().do_GET()
 
     def do_PUT(self):
-        if self.path != "/api/state":
+        path = self._state_file()
+        if not path:
             return self._json({"error": "not found"}, 404)
         try:
             data = json.loads(self._body() or b"{}")
@@ -100,10 +110,10 @@ class Handler(SimpleHTTPRequestHandler):
             return self._json({"error": "bad json"}, 400)
         with state_lock:
             os.makedirs(DATA_DIR, exist_ok=True)
-            tmp = STATE_FILE + ".tmp"
+            tmp = path + ".tmp"
             with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(data, f)
-            os.replace(tmp, STATE_FILE)
+            os.replace(tmp, path)
         return self._json({"ok": True})
 
     def do_POST(self):
